@@ -1,0 +1,14 @@
+.DS_Store
+~$*
+
+node_modules/
+
+*.bak
+*.swp
+
+.idea/
+
+! .gitignore
+
+build/
+private_file/
