@@ -54,10 +54,10 @@ contract SignatureVerification {
         );
     }
 
-    function verify(bytes _signature, address sender, uint256 amount, bytes32 key) public view returns (bool) {
+    function verify(bytes _signature, address sender, uint256 amount, bytes32 key) public view returns (address) {
         Exchange memory exchange = Exchange({sender: sender, amount: amount, key: key});
         bytes32 hash = hashExchange(exchange);
-        return sender == hash.recover(_signature);
+        return hash.recover(_signature);
     }
 
 }
