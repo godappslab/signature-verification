@@ -1,0 +1,36 @@
+sequenceDiagram
+Title: EIP712署名による本人認証
+participant front AS Front Web
+participant api AS WebAPI
+participant db AS DB
+participant auth AS Authentication ÐApps
+
+front->>+api: ETHアドレス
+    api->>api:IDとシークレットキー生成
+    api->>db:IDとシークレットキーを保存
+api-->>-front: IDとシークレットキー返却
+
+front->>front:ID・シークレットキー・ETHアドレスで署名
+
+front->>+api: ID・署名文字列・ETHアドレスを送信
+Note over front,api: シークレットキーは送信しない
+
+    api->>+db: ID・ETHアドレスでシークレットキーを照会
+    db-->>-api:照会結果
+
+    alt シークレットキーが照会でき、タイムスタンプが期限内
+
+        api->>+auth:ID・署名・ETHアドレス・シークレットキーを送信
+        auth->>auth:ETHアドレス計算
+        auth-->>-api: 割り出したETHアドレス返却
+
+        alt ETHアドレスが一致(OK)
+            api->>api:アクセストークン生成
+            api->>db:ETHアドレスとアクセストークンを保存
+    #        api->>api:認証成功状態を生成
+    #    else ETHアドレスが不一致(NG)
+    #        api->>api:認証失敗状態を生成
+        end
+    end
+
+ api-->>-front: 認証結果
