@@ -1,11 +1,31 @@
-const dapps = artifacts.require('./SignatureVerification.sol');
+/* global artifacts, contract, before, it, assert */
+const fs = require('fs');
+const TokenExchangeVerification = artifacts.require('./TokenExchangeVerification.sol');
+const Authentication = artifacts.require('./Authentication.sol');
 
-const name = 'Implementation of signature and verification by EIP712 for internal circulation token';
-const version = '1';
-const chainId = 4447;
-const verifyingContract = '0x1C56346CD2A2Bf3202F771f50d3D14a367B48070';
-const salt = '0x70025b6296bdcff22008111bb2928efc4adc9f87ee2021277007fafd8e59aba8';
+const getChainId = (network) => {
+    switch (network) {
+        case 'develop':
+            return 4447;
+        case 'ropsten':
+            return 3;
+    }
+};
 
-module.exports = function(deployer) {
-    deployer.deploy(dapps, name, version, chainId, verifyingContract, salt);
+module.exports = function(deployer, network) {
+    const chainId = getChainId(network);
+
+    console.log('** network', network);
+    console.log('** chainId', chainId);
+
+    deployer.deploy(TokenExchangeVerification, chainId).then(() => {
+        // Save ABI to file
+        fs.mkdirSync('deploy/abi/', { recursive: true });
+        fs.writeFileSync('deploy/abi/TokenExchangeVerification.json', JSON.stringify(TokenExchangeVerification.abi), { flag: 'w' });
+    });
+    deployer.deploy(Authentication, chainId).then(() => {
+        // Save ABI to file
+        fs.mkdirSync('deploy/abi/', { recursive: true });
+        fs.writeFileSync('deploy/abi/Authentication.json', JSON.stringify(Authentication.abi), { flag: 'w' });
+    });
 };
