@@ -38,6 +38,7 @@ contract Authentication {
         );
     }
 
+    // Calculate EIP712Domain TypeHash
     function hashDomain(EIP712Domain eip712Domain) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
@@ -51,11 +52,18 @@ contract Authentication {
         );
     }
 
+    // @title Calculate Auth TypeHash
     function hashAuthentication(Auth memory auth) private view returns (bytes32) {
         return keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, keccak256(abi.encode(AUTH_TYPEHASH, auth.authId, auth.user, auth.key))));
     }
 
-    function verify(uint256 authId, address user, bytes32 key, bytes _signature) public view returns (address) {
+    // @title Verify signature: Obtain EOA address from signature
+    // @param bytes _signature
+    // @param uint256 authId
+    // @param address user
+    // @param bytes32 key
+    // @return address EOA address obtained from signature
+    function verify(bytes _signature, uint256 authId, address user, bytes32 key) public view returns (address) {
         Auth memory auth = Auth({authId: authId, user: user, key: key});
         bytes32 hash = hashAuthentication(auth);
         return hash.recover(_signature);

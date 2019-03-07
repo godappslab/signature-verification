@@ -35,6 +35,7 @@ contract TokenExchangeVerification {
         );
     }
 
+    // Calculate EIP712Domain TypeHash
     function hashDomain(EIP712Domain eip712Domain) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
@@ -48,12 +49,19 @@ contract TokenExchangeVerification {
         );
     }
 
+    // @title Calculate Exchange TypeHash
     function hashExchange(Exchange memory exchange) private view returns (bytes32) {
         return keccak256(
             abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, keccak256(abi.encode(EXCHANGE_TYPEHASH, exchange.sender, exchange.amount, exchange.key)))
         );
     }
 
+    // @title Verify signature: Obtain EOA address from signature
+    // @param bytes _signature
+    // @param address sender
+    // @param uint256 amount
+    // @param bytes32 key
+    // @return address EOA address obtained from signature
     function verify(bytes _signature, address sender, uint256 amount, bytes32 key) public view returns (address) {
         Exchange memory exchange = Exchange({sender: sender, amount: amount, key: key});
         bytes32 hash = hashExchange(exchange);
