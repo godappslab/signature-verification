@@ -35,7 +35,7 @@ contract TokenExchangeVerification {
         );
     }
 
-    // Calculate EIP712Domain TypeHash
+    // @title Calculate EIP712Domain TypeHash
     function hashDomain(EIP712Domain eip712Domain) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
