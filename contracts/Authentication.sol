@@ -9,6 +9,11 @@ contract Authentication {
 
     string public constant name = "EIP712Authentication";
     string public constant version = "1.0.0";
+    uint256 private _chainId;
+
+    //web3.utils.soliditySha3('https://github.com/godappslab/signature-verification/contracts/Authentication.sol')
+    // -> "0xa01f074d1ad91458d94ad63150c916e533ba96e186df5d7b3d3a036e37e5d22a"
+    bytes32 public constant salt = 0xa01f074d1ad91458d94ad63150c916e533ba96e186df5d7b3d3a036e37e5d22a;
 
     struct EIP712Domain {
         string name;
@@ -32,10 +37,17 @@ contract Authentication {
 
     bytes32 DOMAIN_SEPARATOR;
 
-    constructor(uint256 _chainId, address _verifyingContract, bytes32 _salt) public {
-        DOMAIN_SEPARATOR = hashDomain(
-            EIP712Domain({name: "EIP712Authentication", version: "1.0.0", chainId: _chainId, verifyingContract: _verifyingContract, salt: _salt})
-        );
+    constructor(uint256 __chainId) public {
+        _chainId = __chainId;
+        DOMAIN_SEPARATOR = hashDomain(EIP712Domain({name: name, version: version, chainId: _chainId, verifyingContract: this, salt: salt}));
+    }
+
+    function chainId() view returns (uint256) {
+        return _chainId;
+    }
+
+    function verifyingContract() view returns (address) {
+        return address(this);
     }
 
     // @title Calculate EIP712Domain TypeHash

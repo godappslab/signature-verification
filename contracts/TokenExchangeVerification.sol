@@ -7,6 +7,14 @@ import "zeppelin-solidity/contracts/ECRecovery.sol";
 contract TokenExchangeVerification {
     using ECRecovery for bytes32;
 
+    string public constant name = "TokenExchangeVerification";
+    string public constant version = "1.0.0";
+    uint256 private _chainId;
+
+    //web3.utils.soliditySha3('https://github.com/godappslab/signature-verification/contracts/TokenExchangeVerification.sol')
+    //"0x21e9aa63a90ccdd955a8774d6c1884164cc3b549753ccc1ce262b12959be962e"
+    bytes32 public constant salt = 0x21e9aa63a90ccdd955a8774d6c1884164cc3b549753ccc1ce262b12959be962e;
+
     struct EIP712Domain {
         string name;
         string version;
@@ -29,10 +37,17 @@ contract TokenExchangeVerification {
 
     bytes32 DOMAIN_SEPARATOR;
 
-    constructor(string _name, string _version, uint256 _chainId, address _verifyingContract, bytes32 _salt) public {
-        DOMAIN_SEPARATOR = hashDomain(
-            EIP712Domain({name: _name, version: _version, chainId: _chainId, verifyingContract: _verifyingContract, salt: _salt})
-        );
+    constructor(uint256 __chainId) public {
+        _chainId = __chainId;
+        DOMAIN_SEPARATOR = hashDomain(EIP712Domain({name: name, version: version, chainId: _chainId, verifyingContract: this, salt: salt}));
+    }
+
+    function chainId() view returns (uint256) {
+        return _chainId;
+    }
+
+    function verifyingContract() view returns (address) {
+        return address(this);
     }
 
     // @title Calculate EIP712Domain TypeHash
