@@ -19,7 +19,7 @@ contract Authentication {
     }
 
     string private constant EIP712_DOMAIN_TYPE = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)";
-    bytes32 public constant EIP712_DOMAIN_TYPE_HASH = keccak256(abi.encodePacked(EIP712_DOMAIN_TYPE));
+    bytes32 public constant EIP712_DOMAIN_TYPEHASH = keccak256(abi.encodePacked(EIP712_DOMAIN_TYPE));
 
     struct Auth {
         uint256 authId;
@@ -28,7 +28,7 @@ contract Authentication {
     }
 
     string private constant AUTH_TYPE = "Auth(uint256 authId,address user,bytes32 key)";
-    bytes32 public constant AUTH_TYPE_HASH = keccak256(abi.encodePacked(AUTH_TYPE));
+    bytes32 public constant AUTH_TYPEHASH = keccak256(abi.encodePacked(AUTH_TYPE));
 
     bytes32 DOMAIN_SEPARATOR;
 
@@ -41,7 +41,7 @@ contract Authentication {
     function hashDomain(EIP712Domain eip712Domain) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
-                EIP712_DOMAIN_TYPE_HASH,
+                EIP712_DOMAIN_TYPEHASH,
                 keccak256(bytes(eip712Domain.name)),
                 keccak256(bytes(eip712Domain.version)),
                 eip712Domain.chainId,
@@ -52,7 +52,7 @@ contract Authentication {
     }
 
     function hashAuthentication(Auth memory auth) private view returns (bytes32) {
-        return keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, keccak256(abi.encode(AUTH_TYPE_HASH, auth.authId, auth.user, auth.key))));
+        return keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, keccak256(abi.encode(AUTH_TYPEHASH, auth.authId, auth.user, auth.key))));
     }
 
     function verify(uint256 authId, address user, bytes32 key, bytes _signature) public view returns (address) {
