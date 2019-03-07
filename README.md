@@ -75,7 +75,7 @@ EIP712 の署名の仕組みを使用し、署名時にその内容を確認で�
 - ID・署名・EOAアドレス・シークレットキーをスマートコントラクトへ送信し署名時に使用したEOAアドレスを取得する
 - 受け取ったEOAアドレスと署名から得られたEOAアドレスが一致していればEOAアドレスからの要求と判断する
 
-![EIP712署名による本人認証](./docs/sequence-diagram/authentication-by-EIP712-signature.svg?s)
+![EIP712署名による本人認証](./docs/sequence-diagram/authentication-by-EIP712-signature.svg)
 
 ## 実装
 
