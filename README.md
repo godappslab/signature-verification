@@ -83,6 +83,11 @@ EIP712 の署名の仕組みを使用し、署名時にその内容を確認で�
 
 https://github.com/godappslab/signature-verification
 
+ウェブサイトからも、このスマートコントラクトを操作することができる。（現在は Ropsten Test Network のみ利用可能）
+
+- EIP712 TokenExchangeVerification https://lab.godapps.io/eip712-token-exchange-verification
+- EIP712Authentication https://lab.godapps.io/eip712-authentication
+
 ## 参考文献
 
 **Standards**
