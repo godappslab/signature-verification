@@ -1,11 +1,11 @@
-pragma solidity >=0.4.24<0.6.0;
+pragma solidity ^0.5.0;
 
-import "zeppelin-solidity/contracts/ECRecovery.sol";
+import "openzeppelin-solidity/contracts/cryptography/ECDSA.sol";
 
-// Implementation of signature and verification by EIP712 for internal circulation token
+// Implementation of signature and verification by EIP712 for internal distribution token
 
 contract TokenExchangeVerification {
-    using ECRecovery for bytes32;
+    using ECDSA for bytes32;
 
     string public constant name = "TokenExchangeVerification";
     string public constant version = "1.0.0";
@@ -39,19 +39,19 @@ contract TokenExchangeVerification {
 
     constructor(uint256 __chainId) public {
         _chainId = __chainId;
-        DOMAIN_SEPARATOR = hashDomain(EIP712Domain({name: name, version: version, chainId: _chainId, verifyingContract: this, salt: salt}));
+        DOMAIN_SEPARATOR = hashDomain(EIP712Domain({name: name, version: version, chainId: _chainId, verifyingContract: address(this), salt: salt}));
     }
 
-    function chainId() view returns (uint256) {
+    function chainId() public view returns (uint256) {
         return _chainId;
     }
 
-    function verifyingContract() view returns (address) {
+    function verifyingContract() public view returns (address) {
         return address(this);
     }
 
     // @title Calculate EIP712Domain TypeHash
-    function hashDomain(EIP712Domain eip712Domain) internal pure returns (bytes32) {
+    function hashDomain(EIP712Domain memory eip712Domain) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
                 EIP712_DOMAIN_TYPEHASH,
@@ -77,7 +77,7 @@ contract TokenExchangeVerification {
     // @param uint256 amount
     // @param bytes32 key
     // @return address EOA address obtained from signature
-    function verify(bytes _signature, address sender, uint256 amount, bytes32 key) public view returns (address) {
+    function verify(bytes memory _signature, address sender, uint256 amount, bytes32 key) public view returns (address) {
         Exchange memory exchange = Exchange({sender: sender, amount: amount, key: key});
         bytes32 hash = hashExchange(exchange);
         return hash.recover(_signature);

@@ -1,4 +1,4 @@
-pragma solidity >=0.4.24<0.6.0;
+pragma solidity ^0.5.0;
 
 /**
  * @title Elliptic curve signature operations
@@ -7,73 +7,61 @@ pragma solidity >=0.4.24<0.6.0;
  * See https://github.com/ethereum/solidity/issues/864
  */
 
-library ECRecovery {
+library ECDSA {
+    /**
+     * @dev Recover signer address from a message by using their signature
+     * @param hash bytes32 message, the hash is the signed message. What is recovered is the signer address.
+     * @param signature bytes signature, the signature is generated using web3.eth.sign()
+     */
+    function recover(bytes32 hash, bytes memory signature) internal pure returns (address) {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
 
-  /**
-   * @dev Recover signer address from a message by using their signature
-   * @param _hash bytes32 message, the hash is the signed message. What is recovered is the signer address.
-   * @param _sig bytes signature, the signature is generated using web3.eth.sign()
-   */
-  function recover(bytes32 _hash, bytes _sig)
-    internal
-    pure
-    returns (address)
-  {
-    bytes32 r;
-    bytes32 s;
-    uint8 v;
+        // Check the signature length
+        if (signature.length != 65) {
+            return (address(0));
+        }
 
-    // Check the signature length
-    if (_sig.length != 65) {
-      return (address(0));
+        // Divide the signature in r, s and v variables
+        // ecrecover takes the signature parameters, and the only way to get them
+        // currently is to use assembly.
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+        }
+
+        // Version of signature should be 27 or 28, but 0 and 1 are also possible versions
+        if (v < 27) {
+            v += 27;
+        }
+
+        // If the version is correct return the signer address
+        if (v != 27 && v != 28) {
+            return (address(0));
+        } else {
+            return ecrecover(hash, v, r, s);
+        }
     }
 
-    // Divide the signature in r, s and v variables
-    // ecrecover takes the signature parameters, and the only way to get them
-    // currently is to use assembly.
-    // solium-disable-next-line security/no-inline-assembly
-    assembly {
-      r := mload(add(_sig, 32))
-      s := mload(add(_sig, 64))
-      v := byte(0, mload(add(_sig, 96)))
+    /**
+     * toEthSignedMessageHash
+     * @dev prefix a bytes32 value with "\x19Ethereum Signed Message:"
+     * and hash the result
+     */
+    function toEthSignedMessageHash(bytes32 hash) internal pure returns (bytes32) {
+        // 32 is the length in bytes of hash,
+        // enforced by the type signature above
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
     }
-
-    // Version of signature should be 27 or 28, but 0 and 1 are also possible versions
-    if (v < 27) {
-      v += 27;
-    }
-
-    // If the version is correct return the signer address
-    if (v != 27 && v != 28) {
-      return (address(0));
-    } else {
-      // solium-disable-next-line arg-overflow
-      return ecrecover(_hash, v, r, s);
-    }
-  }
-
-  /**
-   * toEthSignedMessageHash
-   * @dev prefix a bytes32 value with "\x19Ethereum Signed Message:"
-   * and hash the result
-   */
-  function toEthSignedMessageHash(bytes32 _hash)
-    internal
-    pure
-    returns (bytes32)
-  {
-    // 32 is the length in bytes of hash,
-    // enforced by the type signature above
-    return keccak256(
-      abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
-    );
-  }
 }
 
 // Implementation of signature and verification by EIP712 for internal circulation token
 
 contract Authentication {
-    using ECRecovery for bytes32;
+    using ECDSA for bytes32;
 
     string public constant name = "EIP712Authentication";
     string public constant version = "1.0.0";
@@ -107,19 +95,19 @@ contract Authentication {
 
     constructor(uint256 __chainId) public {
         _chainId = __chainId;
-        DOMAIN_SEPARATOR = hashDomain(EIP712Domain({name: name, version: version, chainId: _chainId, verifyingContract: this, salt: salt}));
+        DOMAIN_SEPARATOR = hashDomain(EIP712Domain({name: name, version: version, chainId: _chainId, verifyingContract: address(this), salt: salt}));
     }
 
-    function chainId() view returns (uint256) {
+    function chainId() public view returns (uint256) {
         return _chainId;
     }
 
-    function verifyingContract() view returns (address) {
+    function verifyingContract() public view returns (address) {
         return address(this);
     }
 
     // @title Calculate EIP712Domain TypeHash
-    function hashDomain(EIP712Domain eip712Domain) internal pure returns (bytes32) {
+    function hashDomain(EIP712Domain memory eip712Domain) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
                 EIP712_DOMAIN_TYPEHASH,
@@ -143,7 +131,7 @@ contract Authentication {
     // @param address user
     // @param bytes32 key
     // @return address EOA address obtained from signature
-    function verify(bytes _signature, uint256 authId, address user, bytes32 key) public view returns (address) {
+    function verify(bytes memory _signature, uint256 authId, address user, bytes32 key) public view returns (address) {
         Auth memory auth = Auth({authId: authId, user: user, key: key});
         bytes32 hash = hashAuthentication(auth);
         return hash.recover(_signature);
