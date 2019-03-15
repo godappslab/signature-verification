@@ -1,5 +1,7 @@
 # Signature verification implementation for EIP712
 
+*Read this in other languages: [English](README.em.md), [日本語](README.ja.md).*
+
 *It is under development.*
 
 ## 概要
